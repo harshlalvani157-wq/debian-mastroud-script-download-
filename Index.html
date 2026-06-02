@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .download-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .file-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+        }
+
+        .file-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .file-name {
+            color: #4a5568;
+            font-size: 16px;
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .file-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn.downloading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .status-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #718096;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: #48bb78;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="download-card">
+        <div class="file-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+            </svg>
+        </div>
+        
+        <h1>Your File is Ready</h1>
+        <div class="file-name" id="fileName">my-file.zip</div>
+        
+        <div class="file-meta">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span id="fileSize">-- MB</span>
+            </span>
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <span id="fileType">ZIP</span>
+            </span>
+        </div>
+
+        <a href="#" class="download-btn" id="downloadBtn" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="btnText">Download Now</span>
+        </a>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-text" id="statusText"></div>
+        <div class="success-message" id="successMessage">✓ Download started!</div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURE THESE VALUES ====================
+        
+        // Replace this with your actual file name (must be in the same folder as this HTML file)
+        const FILE_PATH = 'your-file.zip';
+        
+        // Or use a full URL if hosted elsewhere:
+        // const FILE_PATH = 'https://example.com/files/your-file.zip';
+        
+        // Display info (optional - will auto-detect if possible)
+        const DISPLAY_NAME = 'Your File';  // Leave empty to use filename
+        const DISPLAY_SIZE = '';           // e.g. '15.2 MB' - leave empty for auto
+        
+        // ================================================================
+
+        const fileNameEl = document.getElementById('fileName');
+        const fileSizeEl = document.getElementById('fileSize');
+        const fileTypeEl = document.getElementById('fileType');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btnText');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const successMessage = document.getElementById('successMessage');
+
+        // Set display name
+        const actualName = FILE_PATH.split('/').pop();
+        fileNameEl.textContent = DISPLAY_NAME || actualName;
+
+        // Extract file extension
+        const ext = actualName.split('.').pop().toUpperCase();
+        fileTypeEl.textContent = ext || 'FILE';
+
+        // Set download link
+        downloadBtn.href = FILE_PATH;
+        downloadBtn.download = actualName;
+
+        // Try to get file size (works for same-origin files)
+        if (!DISPLAY_SIZE) {
+            fetch(FILE_PATH, { method: 'HEAD' })
+                .then(response => {
+                    const size = response.headers.get('content-length');
+                    if (size) {
+                        const mb = (size / 1024 / 1024).toFixed(1);
+                        fileSizeEl.textContent = mb + ' MB';
+                    }
+                })
+                .catch(() => {
+                    fileSizeEl.textContent = 'Unknown size';
+                });
+        } else {
+            fileSizeEl.textContent = DISPLAY_SIZE;
+        }
+
+        // Download button click handler
+        downloadBtn.addEventListener('click', function(e) {
+            // If it's a same-origin file, show progress animation
+            if (FILE_PATH.startsWith('http') && !FILE_PATH.includes(window.location.host)) {
+                // External link - just let it download
+                return;
+            }
+
+            e.preventDefault();
+            
+            downloadBtn.classList.add('downloading');
+            progressBar.classList.add('active');
+            btnText.textContent = 'Downloading...';
+            statusText.textContent = 'Preparing your download...';
+            successMessage.classList.remove('show');
+
+            // Simulate progress (since we can't track actual download progress easily)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+                
+                if (progress > 30) statusText.textContent = 'Downloading...';
+                if (progress > 60) statusText.textContent = 'Almost there...';
+            }, 200);
+
+            // Actually trigger the download
+            const link = document.createElement('a');
+            link.href = FILE_PATH;
+            link.download = actualName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Complete after a short delay
+            setTimeout(() => {
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+                statusText.textContent = '';
+                successMessage.classList.add('show');
+                btnText.textContent = 'Download Again';
+                downloadBtn.classList.remove('downloading');
+                
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .download-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .file-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+        }
+
+        .file-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .file-name {
+            color: #4a5568;
+            font-size: 16px;
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .file-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn.downloading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .status-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #718096;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: #48bb78;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="download-card">
+        <div class="file-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+            </svg>
+        </div>
+        
+        <h1>Your File is Ready</h1>
+        <div class="file-name" id="fileName">my-file.zip</div>
+        
+        <div class="file-meta">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span id="fileSize">-- MB</span>
+            </span>
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <span id="fileType">ZIP</span>
+            </span>
+        </div>
+
+        <a href="#" class="download-btn" id="downloadBtn" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="btnText">Download Now</span>
+        </a>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-text" id="statusText"></div>
+        <div class="success-message" id="successMessage">✓ Download started!</div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURE THESE VALUES ====================
+        
+        // Replace this with your actual file name (must be in the same folder as this HTML file)
+        const FILE_PATH = 'your-file.zip';
+        
+        // Or use a full URL if hosted elsewhere:
+        // const FILE_PATH = 'https://example.com/files/your-file.zip';
+        
+        // Display info (optional - will auto-detect if possible)
+        const DISPLAY_NAME = 'Your File';  // Leave empty to use filename
+        const DISPLAY_SIZE = '';           // e.g. '15.2 MB' - leave empty for auto
+        
+        // ================================================================
+
+        const fileNameEl = document.getElementById('fileName');
+        const fileSizeEl = document.getElementById('fileSize');
+        const fileTypeEl = document.getElementById('fileType');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btnText');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const successMessage = document.getElementById('successMessage');
+
+        // Set display name
+        const actualName = FILE_PATH.split('/').pop();
+        fileNameEl.textContent = DISPLAY_NAME || actualName;
+
+        // Extract file extension
+        const ext = actualName.split('.').pop().toUpperCase();
+        fileTypeEl.textContent = ext || 'FILE';
+
+        // Set download link
+        downloadBtn.href = FILE_PATH;
+        downloadBtn.download = actualName;
+
+        // Try to get file size (works for same-origin files)
+        if (!DISPLAY_SIZE) {
+            fetch(FILE_PATH, { method: 'HEAD' })
+                .then(response => {
+                    const size = response.headers.get('content-length');
+                    if (size) {
+                        const mb = (size / 1024 / 1024).toFixed(1);
+                        fileSizeEl.textContent = mb + ' MB';
+                    }
+                })
+                .catch(() => {
+                    fileSizeEl.textContent = 'Unknown size';
+                });
+        } else {
+            fileSizeEl.textContent = DISPLAY_SIZE;
+        }
+
+        // Download button click handler
+        downloadBtn.addEventListener('click', function(e) {
+            // If it's a same-origin file, show progress animation
+            if (FILE_PATH.startsWith('http') && !FILE_PATH.includes(window.location.host)) {
+                // External link - just let it download
+                return;
+            }
+
+            e.preventDefault();
+            
+            downloadBtn.classList.add('downloading');
+            progressBar.classList.add('active');
+            btnText.textContent = 'Downloading...';
+            statusText.textContent = 'Preparing your download...';
+            successMessage.classList.remove('show');
+
+            // Simulate progress (since we can't track actual download progress easily)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+                
+                if (progress > 30) statusText.textContent = 'Downloading...';
+                if (progress > 60) statusText.textContent = 'Almost there...';
+            }, 200);
+
+            // Actually trigger the download
+            const link = document.createElement('a');
+            link.href = FILE_PATH;
+            link.download = actualName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Complete after a short delay
+            setTimeout(() => {
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+                statusText.textContent = '';
+                successMessage.classList.add('show');
+                btnText.textContent = 'Download Again';
+                downloadBtn.classList.remove('downloading');
+                
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .download-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .file-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+        }
+
+        .file-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .file-name {
+            color: #4a5568;
+            font-size: 16px;
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .file-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn.downloading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .status-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #718096;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: #48bb78;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="download-card">
+        <div class="file-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+            </svg>
+        </div>
+        
+        <h1>Your File is Ready</h1>
+        <div class="file-name" id="fileName">my-file.zip</div>
+        
+        <div class="file-meta">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span id="fileSize">-- MB</span>
+            </span>
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <span id="fileType">ZIP</span>
+            </span>
+        </div>
+
+        <a href="#" class="download-btn" id="downloadBtn" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="btnText">Download Now</span>
+        </a>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-text" id="statusText"></div>
+        <div class="success-message" id="successMessage">✓ Download started!</div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURE THESE VALUES ====================
+        
+        // Replace this with your actual file name (must be in the same folder as this HTML file)
+        const FILE_PATH = 'your-file.zip';
+        
+        // Or use a full URL if hosted elsewhere:
+        // const FILE_PATH = 'https://example.com/files/your-file.zip';
+        
+        // Display info (optional - will auto-detect if possible)
+        const DISPLAY_NAME = 'Your File';  // Leave empty to use filename
+        const DISPLAY_SIZE = '';           // e.g. '15.2 MB' - leave empty for auto
+        
+        // ================================================================
+
+        const fileNameEl = document.getElementById('fileName');
+        const fileSizeEl = document.getElementById('fileSize');
+        const fileTypeEl = document.getElementById('fileType');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btnText');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const successMessage = document.getElementById('successMessage');
+
+        // Set display name
+        const actualName = FILE_PATH.split('/').pop();
+        fileNameEl.textContent = DISPLAY_NAME || actualName;
+
+        // Extract file extension
+        const ext = actualName.split('.').pop().toUpperCase();
+        fileTypeEl.textContent = ext || 'FILE';
+
+        // Set download link
+        downloadBtn.href = FILE_PATH;
+        downloadBtn.download = actualName;
+
+        // Try to get file size (works for same-origin files)
+        if (!DISPLAY_SIZE) {
+            fetch(FILE_PATH, { method: 'HEAD' })
+                .then(response => {
+                    const size = response.headers.get('content-length');
+                    if (size) {
+                        const mb = (size / 1024 / 1024).toFixed(1);
+                        fileSizeEl.textContent = mb + ' MB';
+                    }
+                })
+                .catch(() => {
+                    fileSizeEl.textContent = 'Unknown size';
+                });
+        } else {
+            fileSizeEl.textContent = DISPLAY_SIZE;
+        }
+
+        // Download button click handler
+        downloadBtn.addEventListener('click', function(e) {
+            // If it's a same-origin file, show progress animation
+            if (FILE_PATH.startsWith('http') && !FILE_PATH.includes(window.location.host)) {
+                // External link - just let it download
+                return;
+            }
+
+            e.preventDefault();
+            
+            downloadBtn.classList.add('downloading');
+            progressBar.classList.add('active');
+            btnText.textContent = 'Downloading...';
+            statusText.textContent = 'Preparing your download...';
+            successMessage.classList.remove('show');
+
+            // Simulate progress (since we can't track actual download progress easily)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+                
+                if (progress > 30) statusText.textContent = 'Downloading...';
+                if (progress > 60) statusText.textContent = 'Almost there...';
+            }, 200);
+
+            // Actually trigger the download
+            const link = document.createElement('a');
+            link.href = FILE_PATH;
+            link.download = actualName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Complete after a short delay
+            setTimeout(() => {
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+                statusText.textContent = '';
+                successMessage.classList.add('show');
+                btnText.textContent = 'Download Again';
+                downloadBtn.classList.remove('downloading');
+                
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .download-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .file-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+        }
+
+        .file-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .file-name {
+            color: #4a5568;
+            font-size: 16px;
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .file-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn.downloading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .status-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #718096;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: #48bb78;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="download-card">
+        <div class="file-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+            </svg>
+        </div>
+        
+        <h1>Your File is Ready</h1>
+        <div class="file-name" id="fileName">my-file.zip</div>
+        
+        <div class="file-meta">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span id="fileSize">-- MB</span>
+            </span>
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <span id="fileType">ZIP</span>
+            </span>
+        </div>
+
+        <a href="#" class="download-btn" id="downloadBtn" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="btnText">Download Now</span>
+        </a>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-text" id="statusText"></div>
+        <div class="success-message" id="successMessage">✓ Download started!</div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURE THESE VALUES ====================
+        
+        // Replace this with your actual file name (must be in the same folder as this HTML file)
+        const FILE_PATH = 'debian';
+        
+        // Or use a full URL if hosted elsewhere:
+        // const FILE_PATH = 'https://example.com/files/your-file.zip';
+        
+        // Display info (optional - will auto-detect if possible)
+        const DISPLAY_NAME = '';  // Leave empty to use filename
+        const DISPLAY_SIZE = '';           // e.g. '15.2 MB' - leave empty for auto
+        
+        // ================================================================
+
+        const fileNameEl = document.getElementById('fileName');
+        const fileSizeEl = document.getElementById('fileSize');
+        const fileTypeEl = document.getElementById('fileType');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btnText');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const successMessage = document.getElementById('successMessage');
+
+        // Set display name
+        const actualName = FILE_PATH.split('/').pop();
+        fileNameEl.textContent = DISPLAY_NAME || actualName;
+
+        // Extract file extension
+        const ext = actualName.split('.').pop().toUpperCase();
+        fileTypeEl.textContent = ext || 'FILE';
+
+        // Set download link
+        downloadBtn.href = FILE_PATH;
+        downloadBtn.download = actualName;
+
+        // Try to get file size (works for same-origin files)
+        if (!DISPLAY_SIZE) {
+            fetch(FILE_PATH, { method: 'HEAD' })
+                .then(response => {
+                    const size = response.headers.get('content-length');
+                    if (size) {
+                        const mb = (size / 1024 / 1024).toFixed(1);
+                        fileSizeEl.textContent = mb + ' MB';
+                    }
+                })
+                .catch(() => {
+                    fileSizeEl.textContent = 'Unknown size';
+                });
+        } else {
+            fileSizeEl.textContent = DISPLAY_SIZE;
+        }
+
+        // Download button click handler
+        downloadBtn.addEventListener('click', function(e) {
+            // If it's a same-origin file, show progress animation
+            if (FILE_PATH.startsWith('http') && !FILE_PATH.includes(window.location.host)) {
+                // External link - just let it download
+                return;
+            }
+
+            e.preventDefault();
+            
+            downloadBtn.classList.add('downloading');
+            progressBar.classList.add('active');
+            btnText.textContent = 'Downloading...';
+            statusText.textContent = 'Preparing your download...';
+            successMessage.classList.remove('show');
+
+            // Simulate progress (since we can't track actual download progress easily)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+                
+                if (progress > 30) statusText.textContent = 'Downloading...';
+                if (progress > 60) statusText.textContent = 'Almost there...';
+            }, 200);
+
+            // Actually trigger the download
+            const link = document.createElement('a');
+            link.href = FILE_PATH;
+            link.download = actualName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Complete after a short delay
+            setTimeout(() => {
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+                statusText.textContent = '';
+                successMessage.classList.add('show');
+                btnText.textContent = 'Download Again';
+                downloadBtn.classList.remove('downloading');
+                
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .download-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .file-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+        }
+
+        .file-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .file-name {
+            color: #4a5568;
+            font-size: 16px;
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .file-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn.downloading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .status-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #718096;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: #48bb78;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="download-card">
+        <div class="file-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+            </svg>
+        </div>
+        
+        <h1>Your File is Ready</h1>
+        <div class="file-name" id="fileName">my-file.zip</div>
+        
+        <div class="file-meta">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span id="fileSize">-- MB</span>
+            </span>
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <span id="fileType">ZIP</span>
+            </span>
+        </div>
+
+        <a href="#" class="download-btn" id="downloadBtn" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="btnText">Download Now</span>
+        </a>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status-text" id="statusText"></div>
+        <div class="success-message" id="successMessage">✓ Download started!</div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURE THESE VALUES ====================
+        
+        // Replace this with your actual file name (must be in the same folder as this HTML file)
+        const FILE_PATH = 'your-file.zip';
+        
+        // Or use a full URL if hosted elsewhere:
+        // const FILE_PATH = 'https://example.com/files/your-file.zip';
+        
+        // Display info (optional - will auto-detect if possible)
+        const DISPLAY_NAME = 'Your File';  // Leave empty to use filename
+        const DISPLAY_SIZE = '';           // e.g. '15.2 MB' - leave empty for auto
+        
+        // ================================================================
+
+        const fileNameEl = document.getElementById('fileName');
+        const fileSizeEl = document.getElementById('fileSize');
+        const fileTypeEl = document.getElementById('fileType');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btnText');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const successMessage = document.getElementById('successMessage');
+
+        // Set display name
+        const actualName = FILE_PATH.split('/').pop();
+        fileNameEl.textContent = DISPLAY_NAME || actualName;
+
+        // Extract file extension
+        const ext = actualName.split('.').pop().toUpperCase();
+        fileTypeEl.textContent = ext || 'FILE';
+
+        // Set download link
+        downloadBtn.href = FILE_PATH;
+        downloadBtn.download = actualName;
+
+        // Try to get file size (works for same-origin files)
+        if (!DISPLAY_SIZE) {
+            fetch(FILE_PATH, { method: 'HEAD' })
+                .then(response => {
+                    const size = response.headers.get('content-length');
+                    if (size) {
+                        const mb = (size / 1024 / 1024).toFixed(1);
+                        fileSizeEl.textContent = mb + ' MB';
+                    }
+                })
+                .catch(() => {
+                    fileSizeEl.textContent = 'Unknown size';
+                });
+        } else {
+            fileSizeEl.textContent = DISPLAY_SIZE;
+        }
+
+        // Download button click handler
+        downloadBtn.addEventListener('click', function(e) {
+            // If it's a same-origin file, show progress animation
+            if (FILE_PATH.startsWith('http') && !FILE_PATH.includes(window.location.host)) {
+                // External link - just let it download
+                return;
+            }
+
+            e.preventDefault();
+            
+            downloadBtn.classList.add('downloading');
+            progressBar.classList.add('active');
+            btnText.textContent = 'Downloading...';
+            statusText.textContent = 'Preparing your download...';
+            successMessage.classList.remove('show');
+
+            // Simulate progress (since we can't track actual download progress easily)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+                
+                if (progress > 30) statusText.textContent = 'Downloading...';
+                if (progress > 60) statusText.textContent = 'Almost there...';
+            }, 200);
+
+            // Actually trigger the download
+            const link = document.createElement('a');
+            link.href = FILE_PATH;
+            link.download = actualName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Complete after a short delay
+            setTimeout(() => {
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+                statusText.textContent = '';
+                successMessage.classList.add('show');
+                btnText.textContent = 'Download Again';
+                downloadBtn.classList.remove('downloading');
+                
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+
+</body>
+</html>
